@@ -256,6 +256,16 @@ namespace flutter_inappwebview_plugin
     float scaleFactor_ = 1.0;
     POINT lastCursorPos_ = { 0, 0 };
     VirtualKeyState virtualKeys_;
+    // PPM-6793: when the Flutter widget collapses to 0x0 (e.g. the invisible
+    // captcha webview that must keep running in the background) the host HWND
+    // keeps its last bounds and can sit over the desktop swallowing clicks
+    // even while the app is minimized. We make it transparent to hit-testing
+    // in that case — rather than hiding it, which could let WebView2 throttle
+    // the page and stall the passive captcha — and restore its original
+    // extended style once a non-zero size comes back. Untouched while
+    // size > 0, so a normally-visible webview's behaviour is unchanged.
+    bool hostMadeClickThrough_ = false;
+    LONG_PTR hostOriginalExStyle_ = 0;
 
     const std::string expectedBridgeSecret = get_uuid();
     bool javaScriptBridgeEnabled = true;

@@ -3705,6 +3705,31 @@ namespace flutter_inappwebview_plugin
         surfaceSizeChangedCallback_(width, height);
       }
     }
+
+    // PPM-6793: the host HWND is positioned (in screen coordinates) over the
+    // Flutter widget. When the widget collapses to 0x0 (e.g. the invisible
+    // captcha webview that must keep validating in the background) the bounds
+    // above are skipped, so the host keeps its last full size and sits over
+    // the desktop swallowing clicks even while the app is minimized. Make it
+    // transparent to hit-testing in that case so clicks fall through to the
+    // desktop, instead of hiding it (which could let WebView2 throttle the
+    // page and stall the captcha). Rendering/JS are unaffected; the original
+    // extended style is restored once a real size returns. Untouched while
+    // size > 0, so a normally-visible webview behaves exactly as before.
+    HWND hostHwnd = nullptr;
+    if (succeededOrLog(webViewController->get_ParentWindow(&hostHwnd)) && hostHwnd) {
+      if (width > 0 && height > 0) {
+        if (hostMadeClickThrough_) {
+          ::SetWindowLongPtr(hostHwnd, GWL_EXSTYLE, hostOriginalExStyle_);
+          hostMadeClickThrough_ = false;
+        }
+      }
+      else if (!hostMadeClickThrough_) {
+        hostOriginalExStyle_ = ::GetWindowLongPtr(hostHwnd, GWL_EXSTYLE);
+        ::SetWindowLongPtr(hostHwnd, GWL_EXSTYLE, hostOriginalExStyle_ | WS_EX_TRANSPARENT);
+        hostMadeClickThrough_ = true;
+      }
+    }
   }
 
   void InAppWebView::setPosition(size_t x, size_t y, float scale_factor)
