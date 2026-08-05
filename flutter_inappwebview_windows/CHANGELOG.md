@@ -1,3 +1,7 @@
+## 0.7.0-beta.4
+
+- Fixed "[windows] cannot click desktop even if window is minimized" [#2692](https://github.com/pichillilorenzo/flutter_inappwebview/issues/2692), "[Windows] Desktop click-blocking overlay persists after minimize" [#2789](https://github.com/pichillilorenzo/flutter_inappwebview/issues/2789): the WebView2 controllers are now hidden natively when the hosting window is minimized (and shown again on restore) to work around the WebView2 "ghost layer" input-interception bug ([MicrosoftEdge/WebView2Feedback#5459](https://github.com/MicrosoftEdge/WebView2Feedback/issues/5459)); the WebView2 host window is also created at the Flutter window position instead of the screen origin
+
 ## 0.7.0-beta.3
 
 - Updated flutter_inappwebview_platform_interface version to ^1.4.0-beta.3

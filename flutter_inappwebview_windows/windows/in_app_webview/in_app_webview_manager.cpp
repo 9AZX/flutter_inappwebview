@@ -120,12 +120,22 @@ namespace flutter_inappwebview_plugin
     auto keepAliveId = get_optional_fl_map_value<std::string>(*arguments, "keepAliveId");
     auto windowId = get_optional_fl_map_value<int64_t>(*arguments, "windowId");
 
-    RECT bounds;
-    GetClientRect(plugin->registrar->GetView()->GetNativeWindow(), &bounds);
+    HWND flutterWindowHWnd = plugin->registrar->GetView()->GetNativeWindow();
 
-    auto hwnd = CreateWindowEx(0, windowClass_.lpszClassName, L"", 0, 0,
-      0, bounds.right - bounds.left, bounds.bottom - bounds.top,
-      plugin->registrar->GetView()->GetNativeWindow(),
+    RECT bounds;
+    GetClientRect(flutterWindowHWnd, &bounds);
+
+    // create the window at the current Flutter window position instead of
+    // the (0, 0) screen origin, so the WebView2 input region never sits over
+    // an area of the desktop not covered by the app before the first
+    // setPosition call coming from the Dart side.
+    RECT flutterWindowRect;
+    GetWindowRect(flutterWindowHWnd, &flutterWindowRect);
+
+    auto hwnd = CreateWindowEx(0, windowClass_.lpszClassName, L"", 0,
+      flutterWindowRect.left, flutterWindowRect.top,
+      bounds.right - bounds.left, bounds.bottom - bounds.top,
+      flutterWindowHWnd,
       nullptr,
       windowClass_.hInstance, nullptr);
 
@@ -208,6 +218,36 @@ namespace flutter_inappwebview_plugin
         }
       }
     );
+  }
+
+  void InAppWebViewManager::setWindowVisibility(HWND topLevelWindow, bool visible)
+  {
+    auto applyVisibility = [topLevelWindow, visible](CustomPlatformView* platformView)
+      {
+        if (!platformView || !platformView->view) {
+          return;
+        }
+        // the WebView2 host window is an owned window whose owner is the
+        // top-level Flutter window, so apply only to webviews belonging
+        // to the top-level window that is being minimized/restored.
+        auto owner = GetWindow(platformView->hwnd(), GW_OWNER);
+        if (owner != nullptr && GetAncestor(owner, GA_ROOT) != topLevelWindow) {
+          return;
+        }
+        if (visible) {
+          platformView->view->show();
+        }
+        else {
+          platformView->view->hide();
+        }
+      };
+
+    for (auto& [id, platformView] : webViews) {
+      applyVisibility(platformView.get());
+    }
+    for (auto& [keepAliveId, platformView] : keepAliveWebViews) {
+      applyVisibility(platformView.get());
+    }
   }
 
   void InAppWebViewManager::disposeKeepAlive(const std::string& keepAliveId)

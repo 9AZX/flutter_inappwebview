@@ -5,6 +5,7 @@
 #include <flutter/standard_message_codec.h>
 #include <functional>
 #include <optional>
+#include <set>
 
 #include "flutter_inappwebview_windows_plugin.h"
 #include "types/channel_delegate.h"
@@ -35,6 +36,7 @@ namespace flutter_inappwebview_plugin
     void PlatformUtil::_EmitEvent(std::string eventName);
     bool window_is_moving_ = false;
     bool window_start_move_sent_ = false;
+    std::set<HWND> minimized_windows_;
   };
 }
 

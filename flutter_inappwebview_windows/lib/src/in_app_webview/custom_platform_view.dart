@@ -357,6 +357,14 @@ class _CustomPlatformViewState extends State<CustomPlatformView>
   }
 
   @override
+  void onWindowRestore() {
+    // the native side restores the WebView2 visibility, here we just need to
+    // re-sync the surface size and position with the restored window geometry.
+    _reportSurfaceSize();
+    _reportWidgetPosition();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Focus(
       autofocus: true,

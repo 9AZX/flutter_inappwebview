@@ -30,6 +30,8 @@ namespace flutter_inappwebview_plugin
 
     int64_t texture_id() const { return texture_id_; }
 
+    HWND hwnd() const { return hwnd_; }
+
     void UnregisterMethodCallHandler() const;
   private:
     HWND hwnd_;
