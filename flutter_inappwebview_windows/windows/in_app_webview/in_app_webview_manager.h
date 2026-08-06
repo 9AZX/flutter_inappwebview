@@ -51,6 +51,12 @@ namespace flutter_inappwebview_plugin
 
     void createInAppWebView(const flutter::EncodableMap* arguments, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
     void disposeKeepAlive(const std::string& keepAliveId);
+    // Hides/shows all the WebView2 instances hosted on windows owned by the
+    // given top-level window. Used on minimize/restore to work around the
+    // WebView2 "ghost layer" bug that keeps blocking mouse input over the
+    // desktop area even if the WebView2 host window is not visible
+    // (https://github.com/MicrosoftEdge/WebView2Feedback/issues/5459).
+    void setWindowVisibility(HWND topLevelWindow, bool visible);
   private:
     inline static std::shared_ptr<rx::RoHelper> rohelper_ = nullptr;
     inline static winrt::com_ptr<ABI::Windows::System::IDispatcherQueueController>

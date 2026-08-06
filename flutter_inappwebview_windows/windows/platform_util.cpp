@@ -57,6 +57,28 @@ namespace flutter_inappwebview_plugin
         _EmitEvent("onWindowEndMove");
       }
     }
+    else if (message == WM_SIZE) {
+      if (wParam == SIZE_MINIMIZED) {
+        if (minimized_windows_.insert(hWnd).second) {
+          // hide the WebView2 instances natively as well, because their
+          // input region ("ghost layer") would keep blocking mouse clicks
+          // on the desktop area behind the minimized window, see
+          // https://github.com/MicrosoftEdge/WebView2Feedback/issues/5459
+          if (plugin && plugin->inAppWebViewManager) {
+            plugin->inAppWebViewManager->setWindowVisibility(hWnd, false);
+          }
+          _EmitEvent("onWindowMinimize");
+        }
+      }
+      else if (wParam == SIZE_RESTORED || wParam == SIZE_MAXIMIZED) {
+        if (minimized_windows_.erase(hWnd) > 0) {
+          if (plugin && plugin->inAppWebViewManager) {
+            plugin->inAppWebViewManager->setWindowVisibility(hWnd, true);
+          }
+          _EmitEvent("onWindowRestore");
+        }
+      }
+    }
 
     return result;
   }

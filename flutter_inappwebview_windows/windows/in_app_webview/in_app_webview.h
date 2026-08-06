@@ -190,8 +190,18 @@ namespace flutter_inappwebview_plugin
     void callDevToolsProtocolMethod(const std::string& methodName, const std::optional<std::string>& parametersAsJson, const std::function<void(const HRESULT& errorCode, const std::optional<std::string>&)> completionHandler) const;
     void addDevToolsProtocolEventListener(const std::string& eventName);
     void removeDevToolsProtocolEventListener(const std::string& eventName);
-    void pause() const;
-    void resume() const;
+    void pause();
+    void resume();
+    bool isPaused() const
+    {
+      return isPaused_;
+    }
+    // Hides/shows the WebView2 controller without changing the user-requested
+    // pause state. Used when the hosting window is minimized/restored to avoid
+    // the WebView2 "ghost layer" that keeps intercepting mouse input over the
+    // desktop area (https://github.com/MicrosoftEdge/WebView2Feedback/issues/5459).
+    void hide() const;
+    void show() const;
     void getCertificate(const std::function<void(const std::optional<std::unique_ptr<SslCertificate>>)> completionHandler) const;
     void clearSslPreferences(const std::function<void()> completionHandler) const;
     bool isInterfaceSupported(const std::string& interfaceName) const;
@@ -258,6 +268,7 @@ namespace flutter_inappwebview_plugin
     std::map<UINT64, std::shared_ptr<NavigationAction>> navigationActions_ = {};
     std::shared_ptr<NavigationAction> lastNavigationAction_;
     bool isLoading_ = false;
+    bool isPaused_ = false;
     std::string pageFrameId_;
     std::map<std::string, std::pair<wil::com_ptr<ICoreWebView2DevToolsProtocolEventReceiver>, EventRegistrationToken>> devToolsProtocolEventListener_ = {};
     int64_t previousAuthRequestFailureCount = 0;
