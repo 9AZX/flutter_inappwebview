@@ -4194,8 +4194,13 @@ namespace flutter_inappwebview_plugin
                 return;
               }
               std::string json = "null";
-              if (response.has_value() && !response.value()->IsNull()) {
-                json = std::get<std::string>(*(response.value()));
+              // response can be an engaged optional holding nullptr when the
+              // Dart handler returned null, and the value is only a string
+              // for well-formed handler results — never trust either.
+              if (response.has_value() && response.value() != nullptr && !response.value()->IsNull()) {
+                if (const auto* stringValue = std::get_if<std::string>(response.value())) {
+                  json = *stringValue;
+                }
               }
 
               evaluateJavascript("if (window." + JavaScriptBridgeJS::get_JAVASCRIPT_BRIDGE_NAME() + "[" + std::to_string(callHandlerID) + "] != null) { \
