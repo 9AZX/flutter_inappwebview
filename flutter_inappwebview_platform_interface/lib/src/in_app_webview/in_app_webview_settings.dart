@@ -149,6 +149,11 @@ class InAppWebViewSettings_ {
         apiUrl:
             "https://developer.apple.com/documentation/webkit/wkwebviewconfiguration/1395665-applicationnameforuseragent",
       ),
+      WindowsPlatform(
+        apiName: 'ICoreWebView2Settings2.put_UserAgent',
+        apiUrl:
+            'https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2settings2?view=webview2-1.0.2210.55#put_useragent',
+      ),
     ],
   )
   String? applicationNameForUserAgent;
